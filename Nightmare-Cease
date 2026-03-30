@@ -106,7 +106,7 @@ entity:SetCallback("OnSpawned", function()
                         if statsFolder then
                             local playerStats = statsFolder:FindFirstChild("Player_" .. player.Name)
                             if playerStats and playerStats:FindFirstChild("Total") and playerStats.Total:FindFirstChild("DeathCause") then
-                                playerStats.Total.DeathCause.Value = "Cease"
+                                playerStats.Total.DeathCause.Value = "Nightmare Cease"
                             end
                         end
                     end
