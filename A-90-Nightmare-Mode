@@ -1,0 +1,71 @@
+local Config = {
+	Damage = 90
+}
+
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local function getMainGame()
+	return playerGui:WaitForChild("MainUI")
+		:WaitForChild("Initiator")
+		:WaitForChild("Main_Game")
+end
+
+local function getRoom()
+	local currentRoom = player:GetAttribute("CurrentRoom")
+	if not currentRoom then return nil end
+	local folder = workspace:FindFirstChild("CurrentRooms")
+	if not folder then return nil end
+	return folder:FindFirstChild(currentRoom)
+end
+
+local function dealDamage()
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	wait(0.3)
+	if humanoid and humanoid.Health > 0 then
+		humanoid.Health = humanoid.Health - Config.Damage
+	end
+end
+
+local function runA90()
+	local mainGame = getMainGame()
+	local room = getRoom()
+	if not room then return end
+
+	local module = mainGame:WaitForChild("RemoteListener"):WaitForChild("Modules"):WaitForChild("A90")
+
+	local ok, a90 = pcall(function()
+		return require(module)
+	end)
+
+	if ok and typeof(a90) == "function" then
+		a90(require(mainGame), room)
+	end
+
+	task.spawn(function()
+		local jumpscare
+		local gui = playerGui:WaitForChild("MainUI", 5)
+
+		if not gui then return end
+
+		local jumpscareRoot = gui:WaitForChild("Jumpscare", 5)
+		if not jumpscareRoot then return end
+
+		local a90Gui = jumpscareRoot:WaitForChild("Jumpscare_A90", 5)
+		if not a90Gui then return end
+
+		local faceAngry = a90Gui:WaitForChild("FaceAngry", 5)
+		if not faceAngry then return end
+
+		while faceAngry and not faceAngry.Visible do
+			task.wait()
+		end
+
+		dealDamage()
+	end)
+end
+
+runA90()
