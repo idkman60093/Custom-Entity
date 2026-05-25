@@ -224,6 +224,20 @@ local lighting = game.Lighting.MainColorCorrection
  camShake:Start()
  camShake:ShakeOnce(10, 3, 0.1, 6, 2, 0.5)
 
+---====== Fear4 Despawn Trigger ======---
+
+local function onFear4Despawned(callback)
+    workspace.ChildRemoved:Connect(function(child)
+        if child.Name == "Fear4" then
+            print("Fear4 vanished XD")
+
+            task.spawn(function()
+                callback(child)
+            end)
+        end
+    end)
+end
+
 ---====== Sequential Spawning Logic ======---
 
 local config = {
@@ -345,4 +359,19 @@ task.spawn(function()
 
     makeRoomsPurple()
     f4:Run(true)
+end)
+
+onFear4Despawned(function(entity)
+    print("Fear4 fully despawned")
+
+    if not getgenv().FearAchievementExecuted then
+    getgenv().FearAchievementExecuted = true
+
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Custom%20Achievements/Source.lua"))()({
+        Title = "Bleeding Shadows",
+        Desc = "Behind every doors, it gets closer.",
+        Reason = "Encounter Fear",
+        Image = "rbxassetid://116935563250287",
+    })
+end
 end)
