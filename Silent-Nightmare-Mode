@@ -175,6 +175,14 @@ entity:SetCallback("OnEnterRoom", function()
     makeCurrentRoomBlue()
 end)
 
+entity:SetCallback("OnDespawning", function()
+	-- sjsj
+end)
+
+entity:SetCallback("OnDespawned", function()
+	onEntityGone()
+end)
+
 ---====== Run Entity ======---
 
 entity:Run(true)
