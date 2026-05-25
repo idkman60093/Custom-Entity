@@ -51,9 +51,9 @@ local entity = Spawner:Create({
   Break = true
  },
  Death = {
-  Type = "Guiding", -- "Curious"
+  Type = "Curious", -- "Curious"
   Hints = {"You died to A-60...", "He is not hard to beat...", "Just hide...", "Good luck!"},
-  Cause = "A-60"
+  Cause = ""
  }
 })
 
@@ -97,6 +97,16 @@ end)
 
 entity:SetCallback("OnDespawned", function()
     print("Entity has despawned")
+if not getgenv().A60AchievementExecuted then
+    getgenv().A60AchievementExecuted = true
+
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Custom%20Achievements/Source.lua"))()({
+        Title = "Im here",
+        Desc = "Don't run away",
+        Reason = "Encounter A-60",
+        Image = "rbxassetid://12485947561",
+    })
+end
 end)
 
 entity:SetCallback("OnDamagePlayer", function(newHealth: number)
