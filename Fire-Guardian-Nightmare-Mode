@@ -2,8 +2,8 @@
 local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/idkman60093/Doors-Modes/refs/heads/main/Entity%20Spawner%20V2"))()
 
 ---====== Asset Handling ======---
-local fileName = "FireGuardianArrivalSpawn.mp3"
-local soundUrl = "https://github.com/idkman60093/Audio/raw/refs/heads/main/FireGuardian%2520Arrival%2520Sound.mp3"
+local fileName = "FireGuardianSpawn.mp3"
+local soundUrl = "https://github.com/reboundplayz/Doors-Fixed-Modes/raw/main/Video%20Project%205.mp3"
 
 -- Ensure the sound is downloaded locally
 if not isfile(fileName) then
