@@ -1,7 +1,38 @@
 ---====== Load spawner ======---
+
 local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/idkman60093/Doors-Modes/refs/heads/main/Entity%20Spawner%20V2"))()
 
+---====== Achievement ======---
+
+local function onEntityGone()
+	print("Fire Guardian destroyed/despawned")
+
+	if not getgenv().FGAchievementExecuted then
+    getgenv().FGAchievementExecuted = true
+
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Custom%20Achievements/Source.lua"))()({
+        Title = "Im Back",
+        Desc = "Why you hiding?",
+        Reason = "Encounter Fire Guardian",
+        Image = "rbxassetid://128422180137442",
+    })
+end
+end
+
+---====== Room Coloring Logic ======---
+
+local lighting = game.Lighting.MainColorCorrection
+ lighting.TintColor = Color3.fromRGB(255, 0, 0)
+ lighting.Contrast = 2.5
+ lighting.Saturation = 0.2
+
+ local TweenService = game:GetService("TweenService")
+ TweenService:Create(lighting, TweenInfo.new(5), {Contrast = 0}):Play()
+ TweenService:Create(lighting, TweenInfo.new(5), {Saturation = 0}):Play()
+ TweenService:Create(lighting, TweenInfo.new(5), {TintColor = Color3.fromRGB(255, 255, 255)}):Play()
+
 ---====== Asset Handling ======---
+
 local fileName = "FireGuardianSpawn.mp3"
 local soundUrl = "https://github.com/reboundplayz/Doors-Fixed-Modes/raw/main/Video%20Project%205.mp3"
 
@@ -30,33 +61,6 @@ local function playSpawnSound()
         warn("Failed to play local asset: " .. fileName)
     end
 end
-
-local function onEntityGone()
-	print("Fire Guardian destroyed/despawned")
-
-	if not getgenv().FGAchievementExecuted then
-    getgenv().FGAchievementExecuted = true
-
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Custom%20Achievements/Source.lua"))()({
-        Title = "Im Back",
-        Desc = "Why you hiding?",
-        Reason = "Encounter Fire Guardian",
-        Image = "rbxassetid://128422180137442",
-    })
-end
-end
-
----====== Room Coloring Logic ======---
-
-local lighting = game.Lighting.MainColorCorrection
- lighting.TintColor = Color3.fromRGB(255, 0, 0)
- lighting.Contrast = 2.5
- lighting.Saturation = 0.2
-
- local TweenService = game:GetService("TweenService")
- TweenService:Create(lighting, TweenInfo.new(5), {Contrast = 0}):Play()
- TweenService:Create(lighting, TweenInfo.new(5), {Saturation = 0}):Play()
- TweenService:Create(lighting, TweenInfo.new(5), {TintColor = Color3.fromRGB(255, 255, 255)}):Play()
 
 ---====== Create Entity ======---
 
