@@ -1,9 +1,9 @@
 ---====== Load spawner ======---
-local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/DOORS-Entity-Spawner-V2/main/init.luau"))()
+local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/idkman60093/Doors-Modes/refs/heads/main/Entity%20Spawner%20V2"))()
 
 ---====== Asset Handling ======---
-local fileName = "FireGuardianSpawn.mp3"
-local soundUrl = "https://github.com/reboundplayz/Doors-Fixed-Modes/raw/main/Video%20Project%205.mp3"
+local fileName = "FireGuardianArrivalSpawn.mp3"
+local soundUrl = "https://github.com/idkman60093/Audio/raw/refs/heads/main/FireGuardian%2520Arrival%2520Sound.mp3"
 
 -- Ensure the sound is downloaded locally
 if not isfile(fileName) then
@@ -48,26 +48,15 @@ end
 
 ---====== Room Coloring Logic ======---
 
-local function makeCurrentRoomRed()
-    local player = game.Players.LocalPlayer
-    local currentRoomNumber = player:GetAttribute("CurrentRoom")
-    local roomsFolder = game.Workspace:FindFirstChild("CurrentRooms")
-    
-    if roomsFolder then
-        local room = roomsFolder:FindFirstChild(tostring(currentRoomNumber))
-        if room then
-            for _, v in pairs(room:GetDescendants()) do
-                if v:IsA("Light") then
-                    v.Color = Color3.fromRGB(255, 0, 0)
-                    v.Brightness = v.Brightness * 2
-                elseif (v:IsA("Part") or v:IsA("MeshPart")) and (v.Material == Enum.Material.Neon or v.Name == "LightFixture") then
-                    v.Color = Color3.fromRGB(255, 0, 0)
-                end
-            end
-            print("Room " .. tostring(currentRoomNumber) .. " is now permanently red.")
-        end
-    end
-end
+local lighting = game.Lighting.MainColorCorrection
+ lighting.TintColor = Color3.fromRGB(255, 0, 0)
+ lighting.Contrast = 0.2
+ lighting.Saturation = -0.10
+
+ local TweenService = game:GetService("TweenService")
+ TweenService:Create(lighting, TweenInfo.new(5), {Contrast = 0}):Play()
+ TweenService:Create(lighting, TweenInfo.new(5), {Saturation = 0}):Play()
+ TweenService:Create(lighting, TweenInfo.new(5), {TintColor = Color3.fromRGB(255, 255, 255)}):Play()
 
 ---====== Create Entity ======---
 
