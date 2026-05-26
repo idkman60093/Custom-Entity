@@ -2,6 +2,48 @@
 
 local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/DOORS-Entity-Spawner-V2/main/init.luau"))()
 
+---====== Asset Handling ======---
+local fileName = "A-60Spawn.mp3"
+local soundUrl = "https://github.com/idkman60093/Audio/raw/refs/heads/main/A-60%2520Arrival%2520Sound.mp3"
+
+-- Ensure the sound is downloaded locally
+if not isfile(fileName) then
+    print("Downloading sound for the first time...")
+    writefile(fileName, game:HttpGet(soundUrl))
+end
+
+local function playSpawnSound()
+    local success, assetId = pcall(function()
+        return getcustomasset(fileName)
+    end)
+
+    if success then
+        local sound = Instance.new("Sound")
+        sound.SoundId = assetId
+        sound.Volume = 3
+        sound.Parent = game:GetService("SoundService")
+        sound:Play()
+        
+        sound.Ended:Connect(function()
+            sound:Destroy()
+        end)
+    else
+        warn("Failed to play local asset: " .. fileName)
+    end
+end
+
+---====== Room Coloring Logic ======---
+
+local lighting = game.Lighting.MainColorCorrection
+ lighting.TintColor = Color3.fromRGB(255, 0, 0)
+ lighting.Contrast = 0.2
+ lighting.Saturation = 2
+
+ local TweenService = game:GetService("TweenService")
+ TweenService:Create(lighting, TweenInfo.new(5), {Contrast = 0}):Play()
+ TweenService:Create(lighting, TweenInfo.new(5), {Saturation = 0}):Play()
+ TweenService:Create(lighting, TweenInfo.new(5), {TintColor = Color3.fromRGB(255, 255, 255)}):Play()
+
 ---====== Create entity ======---
 
 local entity = Spawner:Create({
@@ -28,7 +70,7 @@ local entity = Spawner:Create({
  },
  Movement = {
   Speed = 130,
-  Delay = 3,
+  Delay = 1.5,
   Reversed = false
  },
  Rebounding = {
