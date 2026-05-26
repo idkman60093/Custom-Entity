@@ -3,7 +3,7 @@ local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/Regul
 
 ---====== Asset Handling ======---
 local fileName = "SilentSpawn.mp3"
-local soundUrl = "https://github.com/reboundplayz/Doors-Fixed-Modes/raw/refs/heads/main/Video%20Project%206.mp3"
+local soundUrl = "https://github.com/idkman60093/Audio/raw/refs/heads/main/Video%20Project%206.mp3"
 
 if not isfile(fileName) then
     writefile(fileName, game:HttpGet(soundUrl))
