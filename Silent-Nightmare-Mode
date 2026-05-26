@@ -2,8 +2,8 @@
 local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/DOORS-Entity-Spawner-V2/main/init.luau"))()
 
 ---====== Asset Handling ======---
-local fileName = "SilentSpawn.mp3"
-local soundUrl = "https://github.com/idkman60093/Audio/raw/refs/heads/main/Video%20Project%206.mp3"
+local fileName = "SilentArrivalSpawn.mp3"
+local soundUrl = "https://github.com/idkman60093/Audio/raw/refs/heads/main/Silent%20Arrival%20Sound.mp3"
 
 if not isfile(fileName) then
     writefile(fileName, game:HttpGet(soundUrl))
