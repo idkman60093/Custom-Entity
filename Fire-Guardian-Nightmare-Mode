@@ -50,8 +50,8 @@ end
 
 local lighting = game.Lighting.MainColorCorrection
  lighting.TintColor = Color3.fromRGB(255, 0, 0)
- lighting.Contrast = 0.2
- lighting.Saturation = -0.10
+ lighting.Contrast = 2.5
+ lighting.Saturation = 0.2
 
  local TweenService = game:GetService("TweenService")
  TweenService:Create(lighting, TweenInfo.new(5), {Contrast = 0}):Play()
