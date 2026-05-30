@@ -41,7 +41,7 @@ local function makeCurrentRoomBlue()
 end
 
 local function onEntityGone()
-	print("Fire Guardian destroyed/despawned")
+	print("Silent destroyed/despawned")
 
 	if not getgenv().SilentAchievementExecuted then
     getgenv().SilentAchievementExecuted = true
