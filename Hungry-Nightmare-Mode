@@ -123,7 +123,7 @@ local function GiveHungryBadge()
 			Title = "Hungry Experience",
 			Desc = "I Will Eat You",
 			Reason = "Encounter Hungry",
-			Image = "rbxassetid://139995837337267"
+			Image = "rbxassetid://117960541847239"
 		})
 	end)
 
