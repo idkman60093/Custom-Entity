@@ -205,7 +205,7 @@ onEntityDespawned(EntityName, function(entity)
         Title = "Born From Static",
         Desc = "Its smile never changes",
         Reason = "Encounter B-60",
-        Image = "rbxassetid://131926348082356",
+        Image = "rbxassetid://117667968899219",
     })
 end
 end)
