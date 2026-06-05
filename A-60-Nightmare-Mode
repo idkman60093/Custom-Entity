@@ -1,6 +1,6 @@
 ---====== Load spawner ======---
 
-local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/DOORS-Entity-Spawner-V2/main/init.luau"))()
+local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/Not-Guestly/Modes/refs/heads/main/Entity-Spawner-Fixed-By-Guestly%20(Outernal)"))()
 
 ---====== Create entity ======---
 
@@ -36,7 +36,7 @@ local entity = Spawner:Create({
   Type = "Ambush", -- "Blitz"
   Min = 2,
   Max = 2,
-  Delay = 2
+  Delay = 0.5
  },
  Damage = {
   Enabled = true,
