@@ -1,0 +1,215 @@
+-- Roblox Executor Script: Entity Spawn & Mechanic Event
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local localPlayer = Players.LocalPlayer
+local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local hrp = character:WaitForChild("HumanoidRootPart")
+local camera = workspace.CurrentCamera
+
+-- Configuration
+local MODEL_1_ID = 105565246142982
+local MODEL_2_ID = 104631594249336
+local TIME_BEFORE_TRANSITION = 8 
+local EVENT_DURATION = 45 
+local BASE_SPEED = 16 
+
+-- Executor asset loading
+local function loadModelViaExecutor(assetId)
+    local success, objects = pcall(function()
+        return game:GetObjects("rbxassetid://" .. tostring(assetId))
+    end)
+    
+    if success and objects and #objects > 0 then
+        local actualModel = objects[1]
+        actualModel.Parent = workspace
+        return actualModel
+    end
+    warn("Executor failed to load asset via GetObjects: " .. tostring(assetId))
+    return nil
+end
+
+-- ==========================================
+-- YOUR ROOM SPAWN LOGIC (With Position & Rotation Fixes)
+-- ==========================================
+local rooms = workspace:WaitForChild("CurrentRooms"):GetChildren()
+local lastRoom = rooms[#rooms - 1]
+
+local firstModel = loadModelViaExecutor(MODEL_1_ID)
+
+if firstModel then
+    if lastRoom and lastRoom:FindFirstChild("Parts") and lastRoom.Parts:FindFirstChild("Floor") then
+        local targetCFrame = (lastRoom.Parts.Floor.CFrame + Vector3.new(0, 5, 0)) * CFrame.Angles(0, math.rad(180), 0)
+        
+        if firstModel:IsA("Model") then
+            firstModel:PivotTo(targetCFrame)
+        elseif firstModel:IsA("BasePart") then
+            firstModel.CFrame = targetCFrame
+        end
+    else
+        local fallbackCFrame = (hrp.CFrame + hrp.CFrame.LookVector * 15) * CFrame.Angles(0, math.rad(180), 0)
+        if firstModel:IsA("Model") then firstModel:PivotTo(fallbackCFrame) else firstModel.CFrame = fallbackCFrame end
+    end
+else
+    error("Could not load Model 1.")
+end
+
+humanoid.WalkSpeed = BASE_SPEED
+
+task.wait(TIME_BEFORE_TRANSITION)
+
+local executionCFrame = firstModel:IsA("Model") and firstModel:GetPivot() or firstModel.CFrame
+firstModel:Destroy()
+
+-- ==========================================
+-- SPAWN NEW MODEL
+-- ==========================================
+local secondModel = loadModelViaExecutor(MODEL_2_ID)
+local targetPart = nil
+
+if secondModel then
+    if secondModel:IsA("Model") then
+        secondModel:PivotTo(executionCFrame)
+        targetPart = secondModel.PrimaryPart or secondModel:FindFirstChildWhichIsA("BasePart", true)
+    elseif secondModel:IsA("BasePart") then
+        secondModel.CFrame = executionCFrame
+        targetPart = secondModel
+    end
+else
+    error("Could not load Model 2.")
+end
+
+if not targetPart then
+    error("Second model has no valid physical parts to track sightlines!")
+end
+
+-- ==========================================
+-- SCREEN EFFECTS SETUP (Pale White Vision)
+-- ==========================================
+local lighting = game:GetService("Lighting")
+local colorCorrection = Instance.new("ColorCorrectionEffect")
+colorCorrection.Brightness = 0.4
+colorCorrection.Saturation = -0.6
+colorCorrection.Contrast = 0.2
+colorCorrection.Parent = lighting
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MechanicEffectsGui"
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
+
+local vignette = Instance.new("ImageLabel")
+vignette.Name = "Vignette"
+vignette.AnchorPoint = Vector2.new(0.5, 0.5)
+vignette.Position = UDim2.new(0.5, 0, 0.5, 0)
+vignette.Size = UDim2.new(2.5, 0, 2.5, 0) 
+vignette.Image = "rbxassetid://6505315861" 
+vignette.ImageColor3 = Color3.new(0, 0, 0)
+vignette.ImageTransparency = 1 
+vignette.BackgroundTransparency = 1
+vignette.Parent = screenGui
+
+-- ==========================================
+-- GAMEPLAY LOOP (New persistent look mechanic)
+-- ==========================================
+local lookPunishmentFactor = 0 
+local initialRoomCount = #rooms
+local startTime = os.clock()
+local survived = false
+
+local connection
+connection = RunService.RenderStepped:Connect(function(dt)
+    if not targetPart or not character or not character.Parent or humanoid.Health <= 0 then
+        connection:Disconnect()
+        return
+    end
+
+    local timeElapsed = os.clock() - startTime
+    local timeProgress = math.clamp(timeElapsed / EVENT_DURATION, 0, 1)
+
+    local camLook = camera.CFrame.LookVector
+    local toEntity = (targetPart.Position - camera.CFrame.Position).Unit
+    local dot = camLook:Dot(toEntity)
+
+    if dot > 0.65 then 
+        lookPunishmentFactor = math.clamp(lookPunishmentFactor + (dt * 0.4), 0, 1)
+    else
+        lookPunishmentFactor = math.clamp(lookPunishmentFactor + (dt * 0.02), 0, 1)
+    end
+
+    humanoid.WalkSpeed = math.max(4, BASE_SPEED * (1 - (lookPunishmentFactor * 0.8)))
+
+    local maxBuildup = math.clamp(timeProgress + (lookPunishmentFactor * 0.4), 0, 0.82)
+    
+    vignette.ImageTransparency = math.clamp(1 - (maxBuildup * 1.2), 0.18, 1)
+    
+    local sizeMultiplier = math.clamp(2.5 - (maxBuildup * 1.5), 1.1, 2.5)
+    vignette.Size = UDim2.new(sizeMultiplier, 0, sizeMultiplier, 0)
+end)
+
+-- ==========================================
+-- 45 SECOND ESCAPE TRACKER & DEATH LOGIC
+-- ==========================================
+task.spawn(function()
+    local timeLeft = EVENT_DURATION
+    
+    while timeLeft > 0 do
+        task.wait(1)
+        timeLeft = timeLeft - 1
+        
+        local currentRooms = workspace:WaitForChild("CurrentRooms"):GetChildren()
+        if #currentRooms > initialRoomCount then
+            survived = true
+            break
+        end
+    end
+
+    if connection then connection:Disconnect() end
+    if secondModel then secondModel:Destroy() end
+    
+    -- Final Evaluation
+    if not survived or timeLeft <= 0 then
+        local finalRooms = workspace:WaitForChild("CurrentRooms"):GetChildren()
+        if #finalRooms <= initialRoomCount then
+            vignette.Size = UDim2.new(1, 0, 1, 0)
+            vignette.ImageTransparency = 0
+            task.wait(0.1)
+            humanoid.Health = 0 
+        else
+            survived = true
+        end
+    end
+
+    if survived then
+        TweenService:Create(colorCorrection, TweenInfo.new(1.5), {Brightness = 0, Saturation = 0, Contrast = 0}):Play()
+        TweenService:Create(vignette, TweenInfo.new(1.5), {ImageTransparency = 1}):Play()
+        
+        task.wait(1.5)
+        colorCorrection:Destroy()
+        screenGui:Destroy()
+        humanoid.WalkSpeed = 16 
+        
+        -- GLOBAL VARIABLE CHECK VIA SHARED ENVIRONMENT
+        if not shared.DreadBadgeAwarded then
+            shared.DreadBadgeAwarded = true -- Sets flag globally so next run skips this block
+            
+            local success, achievementGiver1 = pcall(function()
+                return loadstring(game:HttpGet("https://raw.githubusercontent.com/Voor-Pr00/Achivements/refs/heads/main/Voorpr0"))()
+            end)
+            
+            if success and achievementGiver1 then
+                achievementGiver1({
+                    Title = "Your Time Has Come...",
+                    Desc = "I Think I Should Run..",
+                    Reason = "Encounter And Survive Dread",
+                    Image = "rbxassetid://115242010284862"
+                })
+            end
+        end
+    else
+        colorCorrection:Destroy()
+        screenGui:Destroy()
+    end
+end)
