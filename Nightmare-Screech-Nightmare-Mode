@@ -2,20 +2,41 @@ local player = game.Players.LocalPlayer
 local mainGame = require(player.PlayerGui.MainUI.Initiator.Main_Game)
 local TweenService = game:GetService("TweenService")
 
+-- Handle downloading and creating the custom sound asset
+local fileName = "custom_screech_psst.mp3"
+local url = "https://github.com/reboundplayz/Doors-Fixed-Modes/raw/refs/heads/main/0617.MP3"
+
+if not isfile(fileName) then
+	pcall(function()
+		writefile(fileName, game:HttpGet(url))
+	end)
+end
+
+local customSoundAsset = getcustomasset(fileName)
+
 -- This replaces the original screechModule function completely
 local customScreech = function(p1, p2, p3)
 	-- BYPASS INSERT_SERVICE RESTRICTIONS USING GETOBJECTS
 	local success, objects = pcall(function()
-		return game:GetObjects("rbxassetid://12803018561")
+		return game:GetObjects("rbxassetid://103920330207040")
 	end)
 	
 	local v12
 	if success and objects and objects[1] then
 		v12 = objects[1]
-		v12.Parent = workspace -- Temporarily parent it to wake up physics/rendering
+		v12.Parent = workspace
 	else
-		warn("Failed to load Nightmare Screech via GetObjects! Falling back.")
+		warn("Failed to load Custom Screech via GetObjects! Falling back.")
 		v12 = game.ReplicatedStorage.Entities.Screech:Clone()
+	end
+
+	-- AGGRESSIVE PARTICLE FIX: Force lock, local simulation, and reset layout relations
+	for _, desc in pairs(v12:GetDescendants()) do
+		if desc:IsA("ParticleEmitter") then
+			desc.LockedToPart = true
+			desc.Enabled = true
+			desc.Acceleration = Vector3.new(0, 0, 0) 
+		end
 	end
 
 	-- Dynamically secure the PointLight setup
@@ -55,19 +76,19 @@ local customScreech = function(p1, p2, p3)
 
 	t.Idle:Play()
 	
-	-- PLAY THE MODEL'S INTERNAL "PSST" SOUND FROM THE ROOT PART
-	delay(math.random(1, 10) / 5, function()
-		local modelSound = v12:FindFirstChild("Root") and v12.Root:FindFirstChild("Sound")
-		if modelSound and modelSound:IsA("Sound") then
-			modelSound:Play()
-		else
-			-- Secondary check just in case it's in the Base part instead
-			local backupSound = v12:FindFirstChild("Base") and v12.Base:FindFirstChild("Sound")
-			if backupSound and backupSound:IsA("Sound") then
-				backupSound:Play()
-			end
-		end
-	end)
+	-- PLAY THE CUSTOM "PSST" SPAWN SOUND IMMEDIATELY (REMOVED DELAY)
+	local targetPart = v12:FindFirstChild("Root") or v12:FindFirstChild("Base") or v12.PrimaryPart
+	if targetPart then
+		local oldSound = targetPart:FindFirstChild("Sound")
+		if oldSound then oldSound:Destroy() end
+		
+		local customSound = Instance.new("Sound")
+		customSound.Name = "Sound"
+		customSound.SoundId = customSoundAsset
+		customSound.Volume = 3.5
+		customSound.Parent = targetPart
+		customSound:Play()
+	end
 	
 	local v4 = tick()
 	local v5 = 5 + math.random(1, 10) / 5
@@ -82,7 +103,7 @@ local customScreech = function(p1, p2, p3)
 		if v9 then
 			game:GetService("RunService"):UnbindFromRenderStep("screechStuff" .. uniqueId)
 		else
-			v12.PrimaryPart.CFrame = v6
+			v12:PivotTo(v6)
 		end
 		if not v7 then
 			return
@@ -110,6 +131,13 @@ local customScreech = function(p1, p2, p3)
 	local v11 = tick()
 	local v122 = v12.PrimaryPart.CFrame
     
+	-- TURN OFF PARTICLE EMITTERS UPON INTERACTION (CAUGHT / ATTACKED)
+	for _, desc in pairs(v12:GetDescendants()) do
+		if desc:IsA("ParticleEmitter") then
+			desc.Enabled = false
+		end
+	end
+
 	if v8 then
 		-- ==========================================
 		-- CAUGHT (PLAY SLOWED SOUND @ 0.7 SPEED)
@@ -158,8 +186,10 @@ local customScreech = function(p1, p2, p3)
     
 	-- Stop the background whisper sound cleanly
 	pcall(function()
-		if v12.Root.Sound then v12.Root.Sound:Stop() end
-		if v12.Base.Sound then v12.Base.Sound:Stop() end
+		local soundPart = v12:FindFirstChild("Root") or v12:FindFirstChild("Base")
+		if soundPart and soundPart:FindFirstChild("Sound") then
+			soundPart.Sound:Stop()
+		end
 	end)
 
 	PointLight.Brightness = 1
