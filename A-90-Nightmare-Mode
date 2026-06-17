@@ -1,71 +1,134 @@
 local Config = {
-	Damage = 90
+    Damage = 35,
 }
 
 local Players = game:GetService("Players")
+local Debris = game:GetService("Debris")
+local CoreGui = game:GetService("CoreGui")
+local SoundService = game:GetService("SoundService") 
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- FIX: Safely checks existence BEFORE calling the functions
+local targetGuiParent = (gethiddengui and gethiddengui()) or (gethui and gethui()) or CoreGui
+
 local function getMainGame()
-	return playerGui:WaitForChild("MainUI")
-		:WaitForChild("Initiator")
-		:WaitForChild("Main_Game")
+    return playerGui:WaitForChild("MainUI")
+        :WaitForChild("Initiator")
+        :WaitForChild("Main_Game")
 end
 
 local function getRoom()
-	local currentRoom = player:GetAttribute("CurrentRoom")
-	if not currentRoom then return nil end
-	local folder = workspace:FindFirstChild("CurrentRooms")
-	if not folder then return nil end
-	return folder:FindFirstChild(currentRoom)
+    local currentRoom = player:GetAttribute("CurrentRoom")
+    if not currentRoom then return nil end
+    local folder = workspace:FindFirstChild("CurrentRooms")
+    if not folder then return nil end
+    return folder:FindFirstChild(currentRoom)
+end
+
+local function applyMuffleAndPixelation()
+    -- 1. Setup GUI inside protected container
+    local FXScreenGui = Instance.new("ScreenGui")
+    FXScreenGui.Name = "A90_PostFX_Override"
+    FXScreenGui.IgnoreGuiInset = true
+    FXScreenGui.ResetOnSpawn = false
+    FXScreenGui.DisplayOrder = 999999
+    
+    local pixelImage = Instance.new("ImageLabel")
+    pixelImage.Size = UDim2.new(1, 0, 1, 0)
+    pixelImage.BackgroundTransparency = 1
+    pixelImage.Image = "rbxassetid://8681113666"
+    pixelImage.ImageColor3 = Color3.fromRGB(255, 0, 0) 
+    pixelImage.ImageTransparency = 0.90 
+    pixelImage.Parent = FXScreenGui
+    FXScreenGui.Parent = targetGuiParent
+
+    -- 2. Audio Muffle Effect positioning
+    local equalizer = Instance.new("EqualizerSoundEffect")
+    equalizer.LowGain = 10   
+    equalizer.MidGain = -80  
+    equalizer.HighGain = -80 
+    
+    if SoundService then
+        equalizer.Parent = SoundService
+    else
+        equalizer.Parent = workspace
+    end
+
+    Debris:AddItem(FXScreenGui, 6)
+    Debris:AddItem(equalizer, 6)
+
+    -- 3. Step-by-Step Step Loop
+    task.spawn(function()
+        for i = 90, 100, 1 do
+            local currentTransparency = i / 100
+            pixelImage.ImageTransparency = currentTransparency
+            
+            local progress = (i - 90) / 10
+            equalizer.MidGain = -80 + (80 * progress)
+            equalizer.HighGain = -80 + (80 * progress)
+            equalizer.LowGain = 10 - (10 * progress)
+            
+            task.wait(0.5) 
+        end
+
+        FXScreenGui:Destroy()
+        equalizer:Destroy()
+    end)
 end
 
 local function dealDamage()
-	local character = player.Character
-	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	wait(0.3)
-	if humanoid and humanoid.Health > 0 then
-		humanoid.Health = humanoid.Health - Config.Damage
-	end
+    local character = player.Character
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    task.wait(0.3)
+    if humanoid and humanoid.Health > 0 then
+        humanoid.Health = humanoid.Health - Config.Damage
+        task.spawn(applyMuffleAndPixelation)
+    end
 end
 
 local function runA90()
-	local mainGame = getMainGame()
-	local room = getRoom()
-	if not room then return end
+    local mainGame = getMainGame()
+    local room = getRoom()
+    if not room then return end
 
-	local module = mainGame:WaitForChild("RemoteListener"):WaitForChild("Modules"):WaitForChild("A90")
+    local module = mainGame:WaitForChild("RemoteListener"):WaitForChild("Modules"):WaitForChild("A90")
 
-	local ok, a90 = pcall(function()
-		return require(module)
-	end)
+    local ok, a90 = pcall(function()
+        return require(module)
+    end)
 
-	if ok and typeof(a90) == "function" then
-		a90(require(mainGame), room)
-	end
+    task.spawn(function()
+        local gui = playerGui:WaitForChild("MainUI", 5)
+        if not gui then return end
 
-	task.spawn(function()
-		local jumpscare
-		local gui = playerGui:WaitForChild("MainUI", 5)
+        local jumpscareRoot = gui:WaitForChild("Jumpscare", 5)
+        if not jumpscareRoot then return end
 
-		if not gui then return end
+        local a90Gui = jumpscareRoot:WaitForChild("Jumpscare_A90", 5)
+        if not a90Gui then return end
 
-		local jumpscareRoot = gui:WaitForChild("Jumpscare", 5)
-		if not jumpscareRoot then return end
+        local face = a90Gui:WaitForChild("Face", 5)
+        if face then
+            face.Image = "rbxassetid://124976988963840"
+        end
 
-		local a90Gui = jumpscareRoot:WaitForChild("Jumpscare_A90", 5)
-		if not a90Gui then return end
+        local faceAngry = a90Gui:WaitForChild("FaceAngry", 5)
+        if faceAngry then
+            faceAngry.Image = "rbxassetid://79510447602939"
+        end
 
-		local faceAngry = a90Gui:WaitForChild("FaceAngry", 5)
-		if not faceAngry then return end
+        while faceAngry and not faceAngry.Visible do
+            task.wait()
+        end
 
-		while faceAngry and not faceAngry.Visible do
-			task.wait()
-		end
+        dealDamage()
+    end)
 
-		dealDamage()
-	end)
+    if ok and typeof(a90) == "function" then
+        a90(require(mainGame), room)
+    end
 end
 
 runA90()
