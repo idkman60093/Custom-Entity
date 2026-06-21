@@ -1,0 +1,110 @@
+local cue2 = Instance.new("Sound")
+cue2.Parent = game.Workspace
+cue2.Name = "Spawn"
+cue2.SoundId = "rbxassetid://9125714014"
+cue2.Volume = 9999
+cue2.PlaybackSpeed = 1
+cue2:Play()
+
+local lighting = game.Lighting.MainColorCorrection
+ lighting.TintColor = Color3.fromRGB(255, 0, 0)
+ lighting.Contrast = 40
+ lighting.Saturation = 10
+
+ local TweenService = game:GetService("TweenService")
+ TweenService:Create(lighting, TweenInfo.new(5), {Contrast = 0}):Play()
+ TweenService:Create(lighting, TweenInfo.new(5), {Saturation = 0}):Play()
+ TweenService:Create(lighting, TweenInfo.new(5), {TintColor = Color3.fromRGB(255, 255, 255)}):Play()
+
+if game.Workspace:FindFirstChild("SeekMovingNewClone") then return end
+
+---====== Load spawner ======---
+
+local spawner = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Entity%20Spawner/V2/Source.lua"
+))()
+
+---====== Create entity ======---
+
+local entity = spawner.Create({
+    Entity = {
+        Name = "Insanity",
+        Asset = "rbxassetid://13378668110",
+        HeightOffset = 2
+    },
+
+    Lights = {
+        Flicker = {
+            Enabled = true,
+            Duration = 8
+        },
+        Shatter = false,
+        Repair = false
+    },
+
+    Earthquake = {
+        Enabled = false
+    },
+
+    Movement = {
+        Speed = 150,
+        Delay = 9,
+        Reversed = true
+    },
+
+    Rebounding = {
+        Enabled = false,
+        Type = "Ambush",
+        Min = 10,
+        Max = 15,
+        Delay = 0
+    },
+
+    Damage = {
+        Enabled = true,
+        Range = 60,
+        Amount = 125
+    },
+
+    Crucifixion = {
+        Enabled = true,
+        Range = 40,
+        Resist = false,
+        Break = true
+    },
+
+    Death = {
+        Type = "Guiding",
+        Hints = {
+            "You died to ...",
+            "I Dont remember HIM here..."
+        },
+        Cause = "Insanity"
+    }
+})
+
+---====== Debug callbacks ======---
+
+entity:SetCallback("OnSpawned", function()
+    print("Insanity spawned")
+end)
+
+entity:SetCallback("OnStartMoving", function()
+    print("Insanity moving")
+end)
+
+entity:SetCallback("OnRebounding", function(start)
+    if start then
+        print("Insanity rebounding")
+    end
+end)
+
+entity:SetCallback("OnDamagePlayer", function(hp)
+    if hp <= 0 then
+        print("Player died to Insanity")
+    end
+end)
+
+---====== Run entity ======---
+
+entity:Run()
