@@ -27,8 +27,8 @@ local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/Not-G
 local entity = Spawner:Create({
  Entity = {
   Name = "Insanity",
-  Asset = "rbxassetid://13378668110",
-  HeightOffset = 2
+  Asset = "rbxassetid://11839806488",
+  HeightOffset = 0
  },
  Lights = {
   Flicker = {
