@@ -1,0 +1,17 @@
+local cue2 = Instance.new("Sound")
+cue2.Parent = game.Workspace
+cue2.Name = "Spawn"
+cue2.SoundId = "rbxassetid://104751398981685"
+cue2.Volume = 9999
+cue2.PlaybackSpeed = 1
+cue2:Play()
+
+local lighting = game.Lighting.MainColorCorrection
+ lighting.TintColor = Color3.fromRGB(0, 0, 0)
+ lighting.Contrast = -10
+ lighting.Saturation = -5
+
+ local TweenService = game:GetService("TweenService")
+ TweenService:Create(lighting, TweenInfo.new(5), {Contrast = 0}):Play()
+ TweenService:Create(lighting, TweenInfo.new(5), {Saturation = 0}):Play()
+ TweenService:Create(lighting, TweenInfo.new(5), {TintColor = Color3.fromRGB(255, 255, 255)}):Play()
