@@ -45,7 +45,7 @@ local entity = Spawner:Create({
   Enabled = true,
   Type = "Ambush", -- "Blitz"
   Min = 3,
-  Max = 3,
+  Max = 4,
   Delay = 0
  },
  Damage = {
